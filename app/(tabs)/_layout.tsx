@@ -81,7 +81,7 @@ return (
   <View style={styles.container}>
     <Image style={{ marginTop: hp(20), width: wp(70), height: wp(70), alignSelf: "center" }} source={require("../../assets/images/m.png")} />
     <Text style={{ marginTop: hp(5), width: wp(70), textAlign: "center", alignSelf: "center", fontSize: hp(4) }}>
-      <Text style={{ color: "#BBACF2", fontWeight: "bold" }}>운해보러가자~</Text>
+      <Text style={{ color: "#BBACF2", fontWeight: "bold" }}>운해보러갈래?</Text>
     </Text>
     <Text style={{ marginTop: hp(2), width: wp(70), textAlign: "center", alignSelf: "center", fontSize: hp(2), color: "#bbb" }}>
       삼대가 덕을 쌓아야 볼 수 있는 운해들도 쉽게 보자!
@@ -91,7 +91,7 @@ return (
         width: wp(50),
         height: hp(6),
         marginTop: hp(15),
-        backgroundColor: "#BBACF2",
+    backgroundColor: "#BBACF2",
         alignSelf: "center",
         alignItems: "center",
         justifyContent: "center",

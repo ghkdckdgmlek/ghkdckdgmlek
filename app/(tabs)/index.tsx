@@ -529,8 +529,6 @@ const TabOneScreen = () => {
         //   console.log(doc.data()) 
         // })
 
-
-
         for (const mountain of mountains) {
           const response = await fetch(
             `https://api.openweathermap.org/data/2.5/forecast?lat=${mountain.location.latitude}&lon=${mountain.location.longitude}&appid=${apiKey}&units=metric`
@@ -558,45 +556,48 @@ const TabOneScreen = () => {
   }, []);
 
   // 현재 UTC 시간을 가져옴
-const now = new Date();
+  const now = new Date();
 
-// 한국 시간대로 현재 시간 변경
-const nowInKorea = new Date(now.getTime() + (9 * 3600 * 1000)); // UTC로부터 +9시간
+  // 한국 시간대로 현재 시간 변경
+  const nowInKorea = new Date(now.getTime() + (9 * 3600 * 1000)); // UTC로부터 +9시간
+  
+  const get6AMWeatherIndex = (daysFromNow: number) => {
+    const hoursUntilNext6AM = (24 + 6 - nowInKorea.getHours()) % 24;
+    const totalHoursFromNow = hoursUntilNext6AM + (daysFromNow * 24);
+    return Math.ceil(totalHoursFromNow / 3);
+};
 
-// 현재 시간에서 다음날 오전 6시까지의 시간 차이 계산 (한국 시간 기준)
-const hoursUntilNext6AM = (24 + 6 - nowInKorea.getHours()) % 24;
-
-// 3시간 간격으로 제공되는 데이터에서 몇 번째 인덱스가 다음날 오전 6시의 데이터인지 계산
-const indexForNext6AM = Math.ceil(hoursUntilNext6AM / 3);
-
-const tomorrow = new Date(nowInKorea);
-tomorrow.setDate(tomorrow.getDate() + 1);
-
-const dayAfterTomorrow = new Date(nowInKorea);
-dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
-
-const twoDaysAfterTomorrow = new Date(nowInKorea);
-twoDaysAfterTomorrow.setDate(twoDaysAfterTomorrow.getDate() + 3);
 
 const formatDate = (date: Date) => `${date.getFullYear()}년 ${date.getMonth() + 1}-${date.getDate()}일`; // 변환하는법
+
+const tomorrow = new Date(nowInKorea);
+tomorrow.setDate(tomorrow.getDate() );
+
+const dayAfterTomorrow = new Date(nowInKorea);
+dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 1);
+
+const twoDaysAfterTomorrow = new Date(nowInKorea);
+twoDaysAfterTomorrow.setDate(twoDaysAfterTomorrow.getDate() + 2);
+
+
 
 
 
 const getMarkerImage = (mountainData: any) => {
-  const condition1 =
-    mountainData.weatherData.list[indexForNext6AM].main.humidity > 90 &&
-    mountainData.weatherData.list[indexForNext6AM].wind.speed < 2 &&
-    mountainData.weatherData.list[indexForNext6AM].weather[0].main === "Clear";
+  const condition1 = 
+    mountainData.weatherData.list[get6AMWeatherIndex(0)].main.humidity > 90 &&
+    mountainData.weatherData.list[get6AMWeatherIndex(0)].wind.speed < 2 &&
+    mountainData.weatherData.list[get6AMWeatherIndex(0)].weather[0].description === "Clear sky";
 
-  const condition2 =
-    mountainData.weatherData.list[indexForNext6AM + 8].main.humidity > 90 &&
-    mountainData.weatherData.list[indexForNext6AM + 8].wind.speed < 2 &&
-    mountainData.weatherData.list[indexForNext6AM + 8].weather[0].main === "Clear";
+const condition2 = 
+    mountainData.weatherData.list[get6AMWeatherIndex(1)].main.humidity > 90 &&
+    mountainData.weatherData.list[get6AMWeatherIndex(1)].wind.speed < 2 &&
+    mountainData.weatherData.list[get6AMWeatherIndex(1)].weather[0].description === "Clear sky";
 
-  const condition3 =
-    mountainData.weatherData.list[indexForNext6AM + 16].main.humidity > 90 &&
-    mountainData.weatherData.list[indexForNext6AM + 16].wind.speed < 2 &&
-    mountainData.weatherData.list[indexForNext6AM + 16].weather[0].main === "Clear";
+const condition3 = 
+    mountainData.weatherData.list[get6AMWeatherIndex(2)].main.humidity > 90 &&
+    mountainData.weatherData.list[get6AMWeatherIndex(2)].wind.speed < 2 &&
+    mountainData.weatherData.list[get6AMWeatherIndex(2)].weather[0].description === "Clear sky";
 
   if (condition1 || condition2 || condition3) {
     return require('../../assets/images/c.png');
@@ -647,13 +648,13 @@ const getMarkerImage = (mountainData: any) => {
         <View style={styles.weatherContainer}>
           <Text>           산: {selectedMountainData.name}</Text>
 
-          <Text>{formatDate(tomorrow)} 6 AM 습도: {selectedMountainData.weatherData.list[indexForNext6AM].main.humidity}%</Text>
-          <Text>{formatDate(tomorrow)} 6 AM 풍속: {selectedMountainData.weatherData.list[indexForNext6AM].wind.speed} m/s</Text>
-          <Text>{formatDate(tomorrow)} 6 AM 날씨: {selectedMountainData.weatherData.list[indexForNext6AM].weather[0].main}</Text>
+          <Text>{formatDate(tomorrow)} 6 AM 습도: {selectedMountainData.weatherData.list[get6AMWeatherIndex(0)].main.humidity}%</Text>
+          <Text>{formatDate(tomorrow)} 6 AM 풍속: {selectedMountainData.weatherData.list[get6AMWeatherIndex(0)].wind.speed} m/s</Text>
+          <Text>{formatDate(tomorrow)} 6 AM 날씨: {selectedMountainData.weatherData.list[get6AMWeatherIndex(0)].weather[0].description}</Text>
 
-          {selectedMountainData.weatherData.list[indexForNext6AM].main.humidity > 90 &&
-            selectedMountainData.weatherData.list[indexForNext6AM].wind.speed < 2 &&
-            selectedMountainData.weatherData.list[indexForNext6AM].weather[0].main === "Clear" ? (
+          {selectedMountainData.weatherData.list[get6AMWeatherIndex(0)].main.humidity > 90 &&
+            selectedMountainData.weatherData.list[get6AMWeatherIndex(0)].wind.speed < 2 &&
+            selectedMountainData.weatherData.list[get6AMWeatherIndex(0)].weather[0].description === "Clear sky" ? (
             <Image
               source={require('../../assets/images/b.png')}
               style={{ width: 30, height: 30 }}
@@ -664,13 +665,13 @@ const getMarkerImage = (mountainData: any) => {
               style={{ width: 30, height: 30 }}
             />
           )}
-          <Text>{formatDate(dayAfterTomorrow)} 6 AM 습도: {selectedMountainData.weatherData.list[indexForNext6AM+8].main.humidity}%</Text>
-          <Text>{formatDate(dayAfterTomorrow)} 6 AM 풍속: {selectedMountainData.weatherData.list[indexForNext6AM+8].wind.speed} m/s</Text>
-          <Text>{formatDate(dayAfterTomorrow)} 6 AM 날씨: {selectedMountainData.weatherData.list[indexForNext6AM+8].weather[0].main}</Text>
+          <Text>{formatDate(dayAfterTomorrow)} 6 AM 습도: {selectedMountainData.weatherData.list[get6AMWeatherIndex(1)].main.humidity}%</Text>
+          <Text>{formatDate(dayAfterTomorrow)} 6 AM 풍속: {selectedMountainData.weatherData.list[get6AMWeatherIndex(1)].wind.speed} m/s</Text>
+          <Text>{formatDate(dayAfterTomorrow)} 6 AM 날씨: {selectedMountainData.weatherData.list[get6AMWeatherIndex(1)].weather[0].description}</Text>
 
-          {selectedMountainData.weatherData.list[indexForNext6AM+8].main.humidity > 90 &&
-            selectedMountainData.weatherData.list[indexForNext6AM+8].wind.speed < 2 &&
-            selectedMountainData.weatherData.list[indexForNext6AM+8].weather[0].main === "Clear" ? (
+          {selectedMountainData.weatherData.list[get6AMWeatherIndex(1)].main.humidity > 90 &&
+            selectedMountainData.weatherData.list[get6AMWeatherIndex(1)].wind.speed < 2 &&
+            selectedMountainData.weatherData.list[get6AMWeatherIndex(1)].weather[0].description === "Clear sky" ? (
             <Image
               source={require('../../assets/images/b.png')}
               style={{ width: 30, height: 30 }}
@@ -682,13 +683,13 @@ const getMarkerImage = (mountainData: any) => {
             />
           )}
           
-          <Text>{formatDate(twoDaysAfterTomorrow)} 6 AM 습도: {selectedMountainData.weatherData.list[indexForNext6AM+16].main.humidity}%</Text>
-          <Text>{formatDate(twoDaysAfterTomorrow)} 6 AM 풍속: {selectedMountainData.weatherData.list[indexForNext6AM+16].wind.speed } m/s</Text>
-          <Text>{formatDate(twoDaysAfterTomorrow)} 6 AM 날씨: {selectedMountainData.weatherData.list[indexForNext6AM+16].weather[0].main}</Text>
+          <Text>{formatDate(twoDaysAfterTomorrow)} 6 AM 습도: {selectedMountainData.weatherData.list[get6AMWeatherIndex(2)].main.humidity}%</Text>
+          <Text>{formatDate(twoDaysAfterTomorrow)} 6 AM 풍속: {selectedMountainData.weatherData.list[get6AMWeatherIndex(2)].wind.speed } m/s</Text>
+          <Text>{formatDate(twoDaysAfterTomorrow)} 6 AM 날씨: {selectedMountainData.weatherData.list[get6AMWeatherIndex(2)].weather[0].description}</Text>
 
-          {selectedMountainData.weatherData.list[indexForNext6AM+16].main.humidity > 90 &&
-            selectedMountainData.weatherData.list[indexForNext6AM+16].wind.speed < 2 &&
-            selectedMountainData.weatherData.list[indexForNext6AM+16].weather[0].main === "Clear" ? (
+          {selectedMountainData.weatherData.list[get6AMWeatherIndex(2)].main.humidity > 90 &&
+            selectedMountainData.weatherData.list[get6AMWeatherIndex(2)].wind.speed < 2 &&
+            selectedMountainData.weatherData.list[get6AMWeatherIndex(2)].weather[0].description === "Clear sky" ? (
             <Image
               source={require('../../assets/images/b.png')}
               style={{ width: 30, height: 30 }}

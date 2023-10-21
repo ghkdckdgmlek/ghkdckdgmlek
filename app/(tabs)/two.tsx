@@ -15,20 +15,14 @@ type Mountain = {
     };
 };
 
-
 const App: React.FC = () => {
-  const [image, setImage] = useState<string>('');
-  const [markerLocation, setMarkerLocation] = useState<any | null>(null);
+  
+  const [markerLocations, setMarkerLocations] = useState<any[]>([]);
+  const [markerImages, setMarkerImages] = useState<string[]>([]);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [mountains, setMountains] = useState<Mountain[]>([]);
 
-  const [markerImage, setMarkerImage] = useState<string | null>(null); // 선택한 사진의 URL을 저장하는 state
-  
-  const [url, setUrl] = useState();  
-  const [ready, setReady] = useState(true)
-
-  
   const toggleModal = () => {
     setModalVisible(!modalVisible);
     setSearchTerm('');
@@ -59,39 +53,53 @@ const App: React.FC = () => {
     longitudeDelta: 0.0421,
   });
 
-   const handleMarkerPress = async (location: any) => {
+  const handleMarkerPress = async (location: any) => {
+    console.log('Launching Image Picker...');
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
       allowsEditing: true,
-      aspect: [1, 1],
+      aspect: [4, 3],
       quality: 1,
-    });
-
-    if (!result.canceled) {
-      const uri = result.uri;
+    }) as any;
+  
+    console.log('Image Picker Result:', JSON.stringify(result));
+  
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      const uri = result.assets[0].uri;
+      console.log('Image selected:', uri);
+  
       const storage = getStorage();
       const imageName = `image_${Date.now()}.jpg`;
       const imageRef = ref(storage, `images/${imageName}`);
       const response = await fetch(uri);
       const blob = await response.blob();
+      
+      console.log('Uploading image to Firebase Storage...');
       await uploadBytes(imageRef, blob);
+      
+      console.log('Image uploaded successfully. Fetching download URL...');
       const url = await getDownloadURL(imageRef);
-
-      setMarkerImage(url);  // 선택한 사진의 URL을 저장
-      setMarkerLocation(location);
-
+      console.log('Download URL:', url);
+  
+      setMarkerImages(prevImages => [...prevImages, url]);
+      setMarkerLocations(prevLocations => [...prevLocations, location]);
+  
       const newMarkerData = {
         location,
         imageUrl: url,
-    };
-    
-    const mountainImagesRef = doc(db, 'mountainImages', imageName);
-    
-    try {
+      };
+      
+      const mountainImagesRef = doc(db, 'mountainImages', imageName);
+      
+      console.log('Saving marker data to Firestore...');
+      try {
         await setDoc(mountainImagesRef, newMarkerData);
-    } catch (error) {
+        console.log('Data saved to Firestore successfully');
+      } catch (error) {
         console.error("Error saving data: ", error);
-    }
+      }
+    } else {
+      console.log('Image selection was canceled');
     }
   }
 
@@ -103,12 +111,18 @@ const App: React.FC = () => {
           title=" 여기얌 "
           onPress={() => handleMarkerPress(mapRegion)}
         />
-        {markerLocation && markerImage ? ( // markerLocation과 markerImage가 있을 경우 사진을 표시
-          <Image
-            style={{ ...styles.overlayImage, top: markerLocation.latitude, left: markerLocation.longitude }}
-            source={{ uri: markerImage }}
-          />
-        ) : null}
+        {markerLocations.map((location, index) => (
+    <Marker
+        key={index}
+        coordinate={location}
+        anchor={{ x: 0.5, y: 0.5 }} // centers the image on the coordinate
+    >
+        <Image
+            style={styles.overlayImage}
+            source={{ uri: markerImages[index] }}
+        />
+    </Marker>
+))}
       </MapView>
 
       <Icon
@@ -130,7 +144,7 @@ const App: React.FC = () => {
             <TextInput
               value={searchTerm}
               onChangeText={text => setSearchTerm(text)}
-              style={{ borderColor: 'gray', borderWidth: 1, marginTop: 20, marginBottom: 20, width: '50%' }}
+              style={{ borderColor: 'gray', borderWidth: 1, marginTop: 20, marginBottom: 20, backgroundColor: 'white', width: '50%' }}
             />
             <FlatList
               data={searchAPI(searchTerm)}
@@ -163,10 +177,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   searchContainer: {
-    height: '50%', // 화면의 절반
-    width: 300, // change width as per your requirements
+    height: '50%',
+    width: 300,
     padding: 20,
-    backgroundColor: 'white',
+    backgroundColor: 'pink',
     borderRadius: 10,
     alignItems: 'center',
     shadowColor: "#000",
@@ -178,28 +192,26 @@ const styles = StyleSheet.create({
     shadowRadius: 2.62,
     elevation: 4,
   },
-  
   map: {
     width: '100%',
     height: '100%',
   },
   overlayImage: {
-    position: 'absolute',
-    width: 50,
-    height: 50,
-  },
+    width: 60, // adjust this as desired
+    height: 60, // adjust this as desired
+},
   searchIcon: {
     position: 'absolute',
     right: 20,
     top: 20,
     zIndex: 1,
   },
-
   title: {
     fontSize: 18,
     fontWeight: 'bold',
     marginVertical: 10,
   },
+  
 });
 
 export default App;

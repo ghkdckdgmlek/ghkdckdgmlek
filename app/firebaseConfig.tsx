@@ -1,10 +1,8 @@
-import firebase from "firebase/compat/app";
-import { initializeFirestore } from "firebase/firestore";
 import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-import "firebase/compat/firestore";
-import 'firebase/compat/storage';
-import { getStorage,ref } from 'firebase/storage';
+import { getAnalytics, isSupported as isAnalyticsSupported } from "firebase/analytics";
+import { getFirestore } from "firebase/firestore";
+import { getStorage } from 'firebase/storage';
+
 
 const firebaseConfig = {
   apiKey: "AIzaSyAuZCe3JQpP8TxHkLdmMxXyGNMOqduo_eU",
@@ -16,10 +14,16 @@ const firebaseConfig = {
   measurementId: "G-BX2VZ04KL3",
 };
 
-// Initialize Firebase
+const initializeFirebaseAnalytics = async () => {
+  if (await isAnalyticsSupported()) {
+    return getAnalytics(app);
+  }
+  return null;
+};
+
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-const db = initializeFirestore(app, {
-  experimentalForceLongPolling: true,
-})
-export { db };
+const analytics = initializeFirebaseAnalytics();
+const db = getFirestore(app);
+const storage = getStorage(app);
+
+export { db, storage, analytics };
