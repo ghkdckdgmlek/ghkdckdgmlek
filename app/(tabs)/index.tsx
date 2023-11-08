@@ -7,7 +7,7 @@ import { db } from '../firebaseConfig';
 import { setDoc, doc } from 'firebase/firestore';
 
 
-const apiKey = 'f42258d96123e5a79cca25d7b113d9f7';
+const apiKey = '';
 
 
 const mountains = [
